@@ -9,7 +9,7 @@ contract Purchase {
     // The state variable has a default value of the first member, `State.created`
     State public state;
 
-    uint32 public timeStamp;
+    uint256 public timeStamp;
 
     modifier condition(bool condition_) {
         require(condition_);
@@ -46,10 +46,8 @@ contract Purchase {
     }
 
     modifier prePurchase() {
-        inState(State.Locked);
-        onlySeller();
-        if (block.timestamp - timeStamp >= 5 * 60)
-            revert IncompletedPurchase;
+        if (msg.sender != buyer || block.timestamp - timeStamp < 5 * 60)
+            revert IncompletedPurchase();
         _;
     }
 
@@ -135,6 +133,7 @@ contract Purchase {
 
     function completePurchase()
         external
+        inState(State.Locked)
         prePurchase
     {
         emit ItemReceived();
